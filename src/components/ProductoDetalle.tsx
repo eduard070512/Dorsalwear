@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState } from "react";
-import { mxn, precioFinal, ZONAS, type Producto, type Zona } from "@/data/productos";
+import { useEffect, useState } from "react";
+import { imagenDiseno, mxn, precioFinal, ZONAS, type Producto, type Zona } from "@/data/productos";
 import { useCarrito } from "@/lib/carrito";
 
 const Visor3D = dynamic(() => import("@/components/Visor3D"), {
@@ -22,6 +22,14 @@ export default function ProductoDetalle({ p }: { p: Producto }) {
   const [logo, setLogo] = useState<HTMLImageElement | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const final = precioFinal(p);
+
+  // Producto de la colección: el diseño va al frente en la versión que se ve sobre el color elegido.
+  useEffect(() => {
+    if (!p.diseno) return;
+    const img = new Image();
+    img.onload = () => setLogo(img);
+    img.src = imagenDiseno(p.diseno, color);
+  }, [p.diseno, color]);
 
   function toggleZona(z: Zona) {
     setZonas((xs) => (xs.includes(z) ? xs.filter((x) => x !== z) : [...xs, z]));
@@ -51,7 +59,7 @@ export default function ProductoDetalle({ p }: { p: Producto }) {
     <div className="mx-auto grid max-w-7xl gap-10 px-4 pb-24 pt-24 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:pt-28">
       <div className="lg:sticky lg:top-24 lg:self-start">
         <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-[radial-gradient(ellipse_at_50%_40%,#26262b_0%,#0b0b0c_70%)]">
-          <Visor3D tipo={p.tipo} color={color.hex} zonas={zonas} logo={logo} enfoque={enfoque} />
+          <Visor3D tipo={p.tipo} color={color.tela} zonas={zonas} logo={logo} enfoque={enfoque} grande={!!p.diseno} />
           <p className="pointer-events-none absolute bottom-4 left-0 right-0 text-center text-xs text-muted">Arrastra para girar</p>
         </div>
       </div>
@@ -115,7 +123,7 @@ export default function ProductoDetalle({ p }: { p: Producto }) {
         </fieldset>
 
         <fieldset className="mt-7">
-          <legend className="text-sm font-medium">¿Dónde va tu grabado?</legend>
+          <legend className="text-sm font-medium">{p.diseno ? "¿Algo más? (opcional)" : "¿Dónde va tu grabado?"}</legend>
           <div className="mt-3 grid gap-2 sm:grid-cols-3">
             {p.zonas.map((z) => {
               const on = zonas.includes(z);
@@ -141,6 +149,7 @@ export default function ProductoDetalle({ p }: { p: Producto }) {
         </fieldset>
 
         <div className="mt-7 grid gap-4 sm:grid-cols-2">
+          {!p.diseno && (
           <label className="block">
             <span className="text-sm font-medium">Prueba tu logo (opcional)</span>
             <input
@@ -151,6 +160,7 @@ export default function ProductoDetalle({ p }: { p: Producto }) {
             />
             <span className="mt-1 block text-xs text-muted">Solo para verlo aquí. El archivo final nos lo mandas por WhatsApp.</span>
           </label>
+          )}
           <label className="block">
             <span className="text-sm font-medium">Nombre, número o indicaciones</span>
             <input

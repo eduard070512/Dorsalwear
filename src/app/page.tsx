@@ -92,7 +92,7 @@ export default function Inicio() {
           <div className="max-w-2xl rounded-3xl bg-ink/60 p-6 text-center backdrop-blur-md">
             <p className="eyebrow">04 — Color</p>
             <h2 className="display mt-4 text-4xl font-extrabold sm:text-6xl">Cinco colores base. Un solo estilo.</h2>
-            <p className="mt-5 text-bone/75">Negro, gris jaspe, blanco hueso, azul marino y verde bosque. Neutros que combinan con cualquier logo.</p>
+            <p className="mt-5 text-bone/75">Negro, gris jaspe, rojo, café y azul marino. Colores que combinan con cualquier logo o diseño.</p>
           </div>
         </section>
 
@@ -112,6 +112,26 @@ export default function Inicio() {
               {PRODUCTOS.filter((p) => p.destacado).map((p) => (
                 <ProductoCard key={p.slug} p={p} />
               ))}
+            </div>
+          </section>
+
+          <section className="border-t border-line" aria-labelledby="coleccion">
+            <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="eyebrow">Colección</p>
+                  <h2 id="coleccion" className="display mt-3 text-4xl font-extrabold sm:text-5xl">Para programadores</h2>
+                  <p className="mt-4 max-w-xl text-bone/75">15 diseños para quien vive entre código y café. En cualquiera de los 5 colores.</p>
+                </div>
+                <Link href="/catalogo#programadores" className="text-sm text-bone/70 underline-offset-4 hover:text-bone hover:underline">
+                  Ver los 15 →
+                </Link>
+              </div>
+              <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {PRODUCTOS.filter((p) => p.diseno).slice(0, 6).map((p) => (
+                  <ProductoCard key={p.slug} p={p} />
+                ))}
+              </div>
             </div>
           </section>
 

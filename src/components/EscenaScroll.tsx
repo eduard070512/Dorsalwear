@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cargarPrenda, prepararEscena } from "@/lib/prenda3d";
-import type { Zona } from "@/data/productos";
+import { NEUTROS, type Zona } from "@/data/productos";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,7 +21,7 @@ const POSES: Record<string, { x: number; y: number; ry: number; esc: number; zon
   manga: { x: -1.2, y: 0, ry: Math.PI / 2 + 0.35, esc: 1.0, zona: "manga" },
   colores: { x: 0, y: 0.5, ry: Math.PI * 2 - 0.3, esc: 0.72 },
 };
-const COLORES = ["#1b1b1e", "#8e8e93", "#e9e4da", "#1e2a45", "#28392e", "#1b1b1e"];
+const COLORES = [...NEUTROS.map((c) => c.tela), NEUTROS[0].tela];
 
 export default function EscenaScroll() {
   const canvasRef = useRef<HTMLCanvasElement>(null);

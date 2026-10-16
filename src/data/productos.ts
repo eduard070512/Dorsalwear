@@ -1,3 +1,4 @@
+import { DISENOS } from "./disenos";
 /**
  * Catálogo. Precios en MXN. `oferta` es el precio con descuento (si no hay, se cobra `precio`).
  * `precio: null` = se cotiza por WhatsApp. Las fotos reales van en /public/productos; mientras no
@@ -9,7 +10,12 @@ export type Zona = "pecho" | "espalda" | "manga";
 export interface Color {
   id: string;
   nombre: string;
+  /** Color real (muestras y textos). */
   hex: string;
+  /** Tono para la sudadera 3D: la luz del visor aclara la tela, así que va más oscuro que el real. */
+  tela: string;
+  /** Versión de los diseños que se ve bien sobre este color. */
+  tinta: "claro" | "oscuro" | "mono";
 }
 
 export interface Producto {
@@ -29,16 +35,19 @@ export interface Producto {
   destacado?: boolean;
   /** Color de la foto de catálogo (id); por defecto el primero. */
   colorFoto?: string;
+  /** Diseño de la colección (id en data/disenos.ts) que va estampado grande al frente. */
+  diseno?: string;
   /** Oculto en la tienda (p. ej. mientras no hay fotos o precio). */
   oculto?: boolean;
 }
 
-const NEUTROS: Color[] = [
-  { id: "negro", nombre: "Negro", hex: "#1b1b1e" },
-  { id: "gris", nombre: "Gris jaspe", hex: "#8e8e93" },
-  { id: "hueso", nombre: "Blanco hueso", hex: "#e9e4da" },
-  { id: "marino", nombre: "Azul marino", hex: "#1e2a45" },
-  { id: "bosque", nombre: "Verde bosque", hex: "#28392e" },
+// Colores reales del proveedor (fotos de Edu, 2026-10-16).
+export const NEUTROS: Color[] = [
+  { id: "negro", nombre: "Negro", hex: "#1b1b1e", tela: "#1b1b1e", tinta: "claro" },
+  { id: "gris", nombre: "Gris jaspe", hex: "#a9a9ad", tela: "#5a5a5e", tinta: "oscuro" },
+  { id: "rojo", nombre: "Rojo", hex: "#c4122f", tela: "#6e0a19", tinta: "mono" },
+  { id: "cafe", nombre: "Café", hex: "#7b4a2b", tela: "#3a2112", tinta: "mono" },
+  { id: "marino", nombre: "Azul marino", hex: "#1c2541", tela: "#10172b", tinta: "claro" },
 ];
 
 const TODOS: Producto[] = [
@@ -67,7 +76,7 @@ const TODOS: Producto[] = [
       "Corte holgado de hombro caído, el favorito para generaciones, equipos y marcas. Espalda amplia para nombres y números grandes.",
     precio: 400,
     oferta: 360,
-    colores: NEUTROS.slice(0, 4),
+    colores: NEUTROS,
     tallas: ["CH", "M", "G", "XG"],
     zonas: ["pecho", "espalda", "manga"],
     colorFoto: "gris",
@@ -83,7 +92,7 @@ const TODOS: Producto[] = [
     descripcion:
       "Playera deportiva ligera que seca rápido. Perfecta para uniformes de equipo, carreras, gimnasios y eventos, con tu logo al frente y nombre o número en la espalda.",
     precio: null,
-    colores: [NEUTROS[0], NEUTROS[2], NEUTROS[3], { id: "rojo", nombre: "Rojo", hex: "#9e1f24" }],
+    colores: [NEUTROS[0], NEUTROS[1], NEUTROS[2], NEUTROS[4]],
     tallas: ["CH", "M", "G", "XG"],
     zonas: ["pecho", "espalda", "manga"],
     detalles: ["Tela ligera de secado rápido", "Cuello redondo", "Ideal para uniformes", "Nombre y número en espalda"],
@@ -92,6 +101,32 @@ const TODOS: Producto[] = [
     oculto: true, // hasta tener fotos reales y precio
   },
 ];
+
+// Colección "para programadores": una sudadera por diseño, mismos colores, tallas y precio que la clásica.
+const COLORES_FOTO = ["negro", "marino", "rojo", "cafe", "gris"];
+for (const [i, d] of DISENOS.entries()) {
+  TODOS.push({
+    slug: `diseno-${d.id}`,
+    nombre: `Sudadera "${d.nombre}"`,
+    tipo: "sudadera",
+    resumen: d.desc,
+    descripcion: `De la colección para programadores: "${d.nombre}" estampado grande al frente. ${d.desc}. Puedes agregar tu nombre en la espalda o un detalle en la manga.`,
+    precio: 400,
+    oferta: 360,
+    colores: NEUTROS,
+    tallas: ["CH", "M", "G", "XG"],
+    zonas: ["espalda", "manga"],
+    detalles: ["Diseño estampado al frente", "Felpa perchada por dentro", "Capucha con cordones", "Bolsa canguro"],
+    paquete: { pesoKg: 0.8, largo: 35, ancho: 30, alto: 8 },
+    colorFoto: COLORES_FOTO[i % COLORES_FOTO.length],
+    diseno: d.id,
+  });
+}
+
+/** Imagen del diseño en la versión que se ve sobre ese color. */
+export function imagenDiseno(id: string, c: Color): string {
+  return `/disenos/${id}-${c.tinta}.png`;
+}
 
 /** Productos visibles en la tienda. */
 export const PRODUCTOS = TODOS.filter((p) => !p.oculto);

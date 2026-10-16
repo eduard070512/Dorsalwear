@@ -9,7 +9,7 @@ import type { Tipo, Zona } from "@/data/productos";
 const GIRO: Record<Zona, number> = { pecho: 0, espalda: Math.PI, manga: Math.PI / 2 };
 
 /** Visor del producto: arrastra para girar, cambia color, muestra zonas elegidas y el logo subido. */
-export default function Visor3D({ tipo, color, zonas, logo, enfoque }: { tipo: Tipo; color: string; zonas: Zona[]; logo: HTMLImageElement | null; enfoque: Zona | null }) {
+export default function Visor3D({ tipo, color, zonas, logo, enfoque, grande = false }: { tipo: Tipo; color: string; zonas: Zona[]; logo: HTMLImageElement | null; enfoque: Zona | null; grande?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const prendaRef = useRef<Prenda | null>(null);
   const ctlRef = useRef<OrbitControls | null>(null);
@@ -48,7 +48,7 @@ export default function Visor3D({ tipo, color, zonas, logo, enfoque }: { tipo: T
     ro.observe(canvas);
 
     let vivo = true;
-    cargarPrenda(tipo, props.current.color).then((p) => {
+    cargarPrenda(tipo, props.current.color, { pechoGrande: grande }).then((p) => {
       if (!vivo) return p.dispose();
       prendaRef.current = p;
       scene.add(p.group);
@@ -93,7 +93,7 @@ export default function Visor3D({ tipo, color, zonas, logo, enfoque }: { tipo: T
       prendaRef.current = null;
       renderer.dispose();
     };
-  }, [tipo]);
+  }, [tipo, grande]);
 
   useEffect(() => {
     prendaRef.current?.setLogo(logo);

@@ -115,7 +115,8 @@ async function cargarGLB(url: string): Promise<THREE.Group | null> {
   }
 }
 
-export async function cargarPrenda(tipo: Tipo, color: string): Promise<Prenda> {
+/** opciones.pechoGrande: estampado grande al frente (diseños del catálogo) en vez del logo chico. */
+export async function cargarPrenda(tipo: Tipo, color: string, opciones: { pechoGrande?: boolean } = {}): Promise<Prenda> {
   const modelo = await cargarGLB(MODELOS[tipo]);
   if (!modelo) {
     const h = crearSudadera(color, { tipo });
@@ -164,7 +165,9 @@ export async function cargarPrenda(tipo: Tipo, color: string): Promise<Prenda> {
     return ray.intersectObjects(mallas, false)[0] ?? null;
   };
   const objetivos: Record<Zona, { o: THREE.Vector3; d: THREE.Vector3; tam: number; txt: string }> = {
-    pecho: { o: new THREE.Vector3(0, b.max.y - s.y * 0.47, b.max.z + 1), d: new THREE.Vector3(0, 0, -1), tam: s.x * 0.22, txt: "TU LOGO" },
+    pecho: opciones.pechoGrande
+      ? { o: new THREE.Vector3(0, b.max.y - s.y * 0.49, b.max.z + 1), d: new THREE.Vector3(0, 0, -1), tam: s.x * 0.42, txt: "TU LOGO" }
+      : { o: new THREE.Vector3(0, b.max.y - s.y * 0.47, b.max.z + 1), d: new THREE.Vector3(0, 0, -1), tam: s.x * 0.22, txt: "TU LOGO" },
     espalda: { o: new THREE.Vector3(0, b.max.y - s.y * 0.55, b.min.z - 1), d: new THREE.Vector3(0, 0, 1), tam: s.x * 0.34, txt: "TU NOMBRE" },
     manga: { o: new THREE.Vector3(b.min.x - 1, b.max.y - s.y * 0.42, 0), d: new THREE.Vector3(1, 0, 0), tam: s.x * 0.1, txt: "#" },
   };
