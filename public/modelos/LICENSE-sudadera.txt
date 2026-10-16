@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hoodie
+* source:	https://sketchfab.com/3d-models/hoodie-97611a53e3b846f69e0655b210f72b2f
+* author:	Virtual Pandora (https://sketchfab.com/virtualpandora)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hoodie" (https://sketchfab.com/3d-models/hoodie-97611a53e3b846f69e0655b210f72b2f) by Virtual Pandora (https://sketchfab.com/virtualpandora) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

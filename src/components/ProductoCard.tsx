@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { mxn, precioFinal, type Producto } from "@/data/productos";
+import { colorDeFoto, mxn, precioFinal, type Producto } from "@/data/productos";
 
 export default function ProductoCard({ p }: { p: Producto }) {
   const final = precioFinal(p);
@@ -9,7 +9,7 @@ export default function ProductoCard({ p }: { p: Producto }) {
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-gradient-to-b from-ink-3 to-ink">
         <Image
           src={`/productos/${p.slug}.webp`}
-          alt={`${p.nombre} en color ${p.colores[0].nombre}`}
+          alt={`${p.nombre} en color ${colorDeFoto(p).nombre}`}
           fill
           sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
           className="object-contain p-6 transition-transform duration-500 group-hover:scale-[1.04]"

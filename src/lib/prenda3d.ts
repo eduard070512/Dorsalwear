@@ -26,15 +26,15 @@ export const MODELOS: Record<Tipo, string> = {
   playera: "/modelos/playera.glb",
 };
 
-const ALTO = 2.2; // alto final de la prenda en unidades de escena
+const ALTO = 2.5; // alto final de la prenda en unidades de escena
 
 export function prepararEscena(renderer: THREE.WebGLRenderer, scene: THREE.Scene) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 1.2;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const pm = new THREE.PMREMGenerator(renderer);
   scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.75;
   const key = new THREE.DirectionalLight("#ffffff", 2.0);
   key.position.set(2.5, 3, 3.5);
   const rim = new THREE.DirectionalLight("#ffc6a6", 1.4);
@@ -164,8 +164,8 @@ export async function cargarPrenda(tipo: Tipo, color: string): Promise<Prenda> {
     return ray.intersectObjects(mallas, false)[0] ?? null;
   };
   const objetivos: Record<Zona, { o: THREE.Vector3; d: THREE.Vector3; tam: number; txt: string }> = {
-    pecho: { o: new THREE.Vector3(0, b.max.y - s.y * 0.36, b.max.z + 1), d: new THREE.Vector3(0, 0, -1), tam: s.x * 0.24, txt: "TU LOGO" },
-    espalda: { o: new THREE.Vector3(0, b.max.y - s.y * 0.48, b.min.z - 1), d: new THREE.Vector3(0, 0, 1), tam: s.x * 0.36, txt: "TU NOMBRE" },
+    pecho: { o: new THREE.Vector3(0, b.max.y - s.y * 0.47, b.max.z + 1), d: new THREE.Vector3(0, 0, -1), tam: s.x * 0.22, txt: "TU LOGO" },
+    espalda: { o: new THREE.Vector3(0, b.max.y - s.y * 0.55, b.min.z - 1), d: new THREE.Vector3(0, 0, 1), tam: s.x * 0.34, txt: "TU NOMBRE" },
     manga: { o: new THREE.Vector3(b.min.x - 1, b.max.y - s.y * 0.42, 0), d: new THREE.Vector3(1, 0, 0), tam: s.x * 0.1, txt: "#" },
   };
   const zonas: Record<Zona, THREE.Mesh | null> = { pecho: null, espalda: null, manga: null };
@@ -186,8 +186,9 @@ export async function cargarPrenda(tipo: Tipo, color: string): Promise<Prenda> {
         zonas[z] = null;
         continue;
       }
-      const n = h.face.normal.clone().transformDirection(h.object.matrixWorld);
-      const orient = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n));
+      // Se proyecta en la dirección del rayo (no de la normal de la tela) y con "arriba" fijo, para que no salga chueca.
+      const haciaFuera = t.d.clone().negate();
+      const orient = new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().lookAt(haciaFuera, new THREE.Vector3(), new THREE.Vector3(0, 1, 0)));
       const geo = new DecalGeometry(h.object as THREE.Mesh, h.point, orient, new THREE.Vector3(t.tam, t.tam, t.tam * 1.5));
       const mat = new THREE.MeshBasicMaterial({
         map: texturaZona(t.txt, z === "pecho" ? logo : null),
@@ -205,14 +206,30 @@ export async function cargarPrenda(tipo: Tipo, color: string): Promise<Prenda> {
     }
   };
   crearZonas(null);
+  let hayLogo = false;
+  let colorActual = color;
+  // En prendas claras los recuadros van oscuros para que se vean (el logo nunca se tiñe).
+  const tintarZonas = () => {
+    const c = new THREE.Color(colorActual);
+    const claro = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b > 0.45;
+    for (const [z, m] of Object.entries(zonas)) {
+      if (!m) continue;
+      (m.material as THREE.MeshBasicMaterial).color.set(hayLogo && z === "pecho" ? "#ffffff" : claro ? "#1a1a1a" : "#ffffff");
+    }
+  };
+  tintarZonas();
 
   return {
     group,
     zonas,
     setColor(hex) {
+      if (hex === colorActual) return;
+      colorActual = hex;
       for (const t of telas) t.color.set(hex);
+      tintarZonas();
     },
     setLogo(img) {
+      hayLogo = !!img;
       // Recalcular en pose neutra (las calcomanías se proyectan en coordenadas de mundo).
       const pos = group.position.clone(), rot = group.rotation.clone(), esc = group.scale.clone();
       group.position.set(0, 0, 0);
@@ -220,6 +237,7 @@ export async function cargarPrenda(tipo: Tipo, color: string): Promise<Prenda> {
       group.scale.set(1, 1, 1);
       group.updateMatrixWorld(true);
       crearZonas(img);
+      tintarZonas();
       group.position.copy(pos);
       group.rotation.copy(rot);
       group.scale.copy(esc);

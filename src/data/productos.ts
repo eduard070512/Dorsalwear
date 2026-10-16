@@ -27,6 +27,10 @@ export interface Producto {
   /** Peso y medidas del paquete (para la guía de envío). */
   paquete: { pesoKg: number; largo: number; ancho: number; alto: number };
   destacado?: boolean;
+  /** Color de la foto de catálogo (id); por defecto el primero. */
+  colorFoto?: string;
+  /** Oculto en la tienda (p. ej. mientras no hay fotos o precio). */
+  oculto?: boolean;
 }
 
 const NEUTROS: Color[] = [
@@ -37,7 +41,7 @@ const NEUTROS: Color[] = [
   { id: "bosque", nombre: "Verde bosque", hex: "#28392e" },
 ];
 
-export const PRODUCTOS: Producto[] = [
+const TODOS: Producto[] = [
   {
     slug: "sudadera-capucha-clasica",
     nombre: "Sudadera Clásica con capucha",
@@ -66,6 +70,7 @@ export const PRODUCTOS: Producto[] = [
     colores: NEUTROS.slice(0, 4),
     tallas: ["CH", "M", "G", "XG"],
     zonas: ["pecho", "espalda", "manga"],
+    colorFoto: "gris",
     detalles: ["Corte oversize", "Capucha con cordones", "Bolsa canguro", "Espalda ideal para nombre y número"],
     paquete: { pesoKg: 0.9, largo: 35, ancho: 30, alto: 9 },
     destacado: true,
@@ -84,14 +89,22 @@ export const PRODUCTOS: Producto[] = [
     detalles: ["Tela ligera de secado rápido", "Cuello redondo", "Ideal para uniformes", "Nombre y número en espalda"],
     paquete: { pesoKg: 0.3, largo: 30, ancho: 25, alto: 4 },
     destacado: true,
+    oculto: true, // hasta tener fotos reales y precio
   },
 ];
+
+/** Productos visibles en la tienda. */
+export const PRODUCTOS = TODOS.filter((p) => !p.oculto);
 
 export const ZONAS: Record<Zona, { nombre: string; ayuda: string }> = {
   pecho: { nombre: "Pecho", ayuda: "Tu logo o marca al frente" },
   espalda: { nombre: "Espalda", ayuda: "Nombre, número o diseño grande" },
   manga: { nombre: "Manga", ayuda: "Detalle pequeño: iniciales, bandera, año" },
 };
+
+export function colorDeFoto(p: Producto): Color {
+  return p.colores.find((c) => c.id === p.colorFoto) ?? p.colores[0];
+}
 
 export function getProducto(slug: string): Producto | undefined {
   return PRODUCTOS.find((p) => p.slug === slug);

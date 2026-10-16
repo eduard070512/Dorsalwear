@@ -19,7 +19,7 @@ const POSES: Record<string, { x: number; y: number; ry: number; esc: number; zon
   pecho: { x: -1.25, y: 0, ry: 0.12, esc: 0.95, zona: "pecho" },
   espalda: { x: 1.25, y: 0, ry: Math.PI - 0.12, esc: 0.95, zona: "espalda" },
   manga: { x: -1.2, y: 0, ry: Math.PI / 2 + 0.35, esc: 1.0, zona: "manga" },
-  colores: { x: 0, y: 0.15, ry: Math.PI * 2 - 0.35, esc: 0.8 },
+  colores: { x: 0, y: 0.5, ry: Math.PI * 2 - 0.3, esc: 0.72 },
 };
 const COLORES = ["#1b1b1e", "#8e8e93", "#e9e4da", "#1e2a45", "#28392e", "#1b1b1e"];
 
@@ -85,24 +85,32 @@ export default function EscenaScroll() {
       scene.add(p.group);
       t0 = performance.now();
       loop();
-      // Una transición por sección: de la pose anterior a la de la sección.
-      const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-pose]"));
-      let previa = POSES.hero;
-      for (const s of secciones) {
-        const pose = POSES[s.dataset.pose!];
-        if (!pose || s.dataset.pose === "hero") continue;
-        const desde = { ...previa };
+      // Una sola línea de tiempo para todo el recorrido (si cada sección tuviera la suya, al
+      // desplazarse rápido se pelean por la misma prenda). Cada tramo dura lo que mide su sección.
+      const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-pose]")).filter((s) => s.dataset.pose !== "hero" && POSES[s.dataset.pose!]);
+      const zonasDe = (p: (typeof POSES)[string]) => ({ pecho: p.zona === "pecho" ? 1 : 0, espalda: p.zona === "espalda" ? 1 : 0, manga: p.zona === "manga" ? 1 : 0 });
+      if (secciones.length) {
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: s, start: "top 85%", end: "top 25%", scrub: reducido ? false : 0.8 },
           defaults: { ease: "power2.inOut" },
+          scrollTrigger: {
+            trigger: secciones[0],
+            start: "top 85%",
+            endTrigger: secciones[secciones.length - 1],
+            end: "top 25%",
+            scrub: reducido ? false : 0.8,
+          },
         });
-        tl.fromTo(
-          st,
-          { x: desde.x, y: desde.y, ry: desde.ry, esc: desde.esc, pecho: desde.zona === "pecho" ? 1 : 0, espalda: desde.zona === "espalda" ? 1 : 0, manga: desde.zona === "manga" ? 1 : 0 },
-          { x: pose.x, y: pose.y, ry: pose.ry, esc: pose.esc, pecho: pose.zona === "pecho" ? 1 : 0, espalda: pose.zona === "espalda" ? 1 : 0, manga: pose.zona === "manga" ? 1 : 0, immediateRender: false },
-        );
+        let previa = POSES.hero;
+        let t = 0;
+        for (const s of secciones) {
+          const pose = POSES[s.dataset.pose!];
+          const dur = s.offsetHeight / window.innerHeight;
+          // Se mueve en la primera mitad del tramo y se queda quieta el resto (para leer el texto).
+          tl.fromTo(st, { x: previa.x, y: previa.y, ry: previa.ry, esc: previa.esc, ...zonasDe(previa) }, { x: pose.x, y: pose.y, ry: pose.ry, esc: pose.esc, ...zonasDe(pose), duration: dur * 0.55, immediateRender: false }, t);
+          t += dur;
+          previa = pose;
+        }
         triggers.push(tl.scrollTrigger!);
-        previa = pose;
       }
       const colores = document.querySelector<HTMLElement>('[data-pose="colores"]');
       if (colores) {
